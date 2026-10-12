@@ -199,7 +199,7 @@ select { font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid var
             <h2>Contribution of each design</h2>
             <p id="table-note"></p>
           </div>
-          <div><label class="hint" for="onset-select">Disruption start&nbsp;</label><select id="onset-select"></select>
+          <div><label class="hint" for="onset-select">preparation time&nbsp;</label><select id="onset-select"></select>
             <span class="hint">· or click a chart</span></div>
         </div>
         <div class="table-scroll"><table id="table"></table></div>
@@ -453,7 +453,7 @@ function drawChart(card, sp) {
   let axes = yt.map(v => `<text x="${M.l - 6}" y="${Y(v) + 4}" text-anchor="end">${fmt(v, S.metric === "share" ? (Math.abs(v) < 10 && v % 1 ? 1 : 0) : 2)}</text>`).join("");
   const xt = niceTicks(x0, x1, 7);
   axes += xt.map(t => `<text x="${X(t)}" y="${M.t + ih + 16}" text-anchor="middle">${t}</text>`).join("");
-  axes += `<text class="axis-title" x="${M.l + iw / 2}" y="${H - 4}" text-anchor="middle">disruption start (months)</text>`;
+  axes += `<text class="axis-title" x="${M.l + iw / 2}" y="${H - 4}" text-anchor="middle">preparation time (months)</text>`;
   axes += `<text class="axis-title" transform="translate(12 ${M.t + ih / 2}) rotate(-90)" text-anchor="middle">${S.metric === "share" ? "orders lost (% of orders)" : "damage / no-design damage"}</text>`;
   let marks = "";
   if (S.view === "stacked") {
@@ -476,7 +476,7 @@ function drawChart(card, sp) {
   card._X = j => X(on[j]);
   svg.innerHTML = g + zero + marks + baseLine + cross + axes +
     `<rect class="hit" x="${M.l}" y="${M.t}" width="${iw}" height="${ih}" fill="transparent"/>`;
-  svg.setAttribute("aria-label", `${sp}-month stockpile: ${S.view === "stacked" ? "stacked damage reduction" : "one design at a time"} over disruption start times`);
+  svg.setAttribute("aria-label", `${sp}-month stockpile: ${S.view === "stacked" ? "stacked damage reduction" : "one design at a time"} over preparation time times`);
   card.querySelector(".cap").textContent = S.view === "stacked"
     ? (!S.stack.length ? "Grey: no design. Add designs to see their bands."
       : S.fill === "filled" ? "Grey: no design. Each band is what that design removes on top of the ones above it. Black: the whole stack."
@@ -553,7 +553,7 @@ function renderTable() {
   const j = S.pinned ?? 0, sel = S.stack, sps = spKeys(), dp = dpVal();
   $("onset-select").value = j;
   const unitTxt = S.metric === "share" ? "percentage points of orders" : "share of the no-design damage";
-  $("table-note").textContent = `Damage each design removes for a disruption starting at ${D.onsets[j]} months, in ${unitTxt}. ` +
+  $("table-note").textContent = `Damage each design removes for a preparation time at ${D.onsets[j]} months, in ${unitTxt}. ` +
     `"In this order" depends on where the design sits in your stack; "order-free" is its Shapley value: the average over every order in which the selected designs could be stacked. Both columns add up to the same total.`;
   const pm = prefixMasks(sel);
   let h = `<thead><tr class="group"><th></th>${sps.map(sp => `<th colspan="2">${sp}-month stockpile</th>`).join("")}</tr>
