@@ -19,6 +19,7 @@
   --ink: #111111;
   --ink-2: #3d3d3d;
   --ink-3: #6b6b6b;          /* small text: 5.3:1 on white */
+  --ink-4: #a6a6a6;          /* greyed out */
   --rule: #e6e6e6;
   --grid: #f1f1f1;           /* chart gridlines: present but quiet */
   --panel: #f6f6f6;          /* control surface: everything you set */
@@ -59,13 +60,15 @@ header.top .sub { margin: 0; color: var(--ink-2); text-wrap: pretty; }
 @media (min-width: 640px) { header.top h1 { white-space: nowrap; } }
 header.top > * { max-width: var(--title-w, none); }
 
+
 /* view toggle at the top of the right column: stays in reach while scrolling */
 .viewtabs { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 3px; padding: 14px 0 12px;
   background: rgba(255,255,255,0.95); backdrop-filter: blur(6px); transition: box-shadow .2s; }
-.viewtabs [role="tab"] { display: inline-flex; align-items: center; gap: 10px; border: 0; border-radius: var(--r); background: var(--tile);
+.viewtabs { isolation: isolate; }
+.viewtabs [role="tab"] { position: relative; display: inline-flex; align-items: center; gap: 10px; border: 0; border-radius: var(--r); background: none;
   padding: 8px 16px 8px 9px; font: 500 14px var(--font-ui); color: var(--ink-2); cursor: pointer; }
-.viewtabs [role="tab"]:hover { background: var(--tile-hover); color: var(--ink); }
-.viewtabs [role="tab"][aria-selected="true"] { background: var(--ink); color: #fff; }
+.viewtabs [role="tab"]:hover { color: var(--ink); }
+.viewtabs [role="tab"][aria-selected="true"] { color: #fff; }
 .viewtabs .step-num { display: inline-grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 50%;
   background: var(--inactive); color: var(--ink); font: 600 12px var(--font-ui); }
 .viewtabs [role="tab"][aria-selected="true"] .step-num { background: var(--accent); }
@@ -95,10 +98,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, li:focus-visibl
 .btn.ghost:hover { color: var(--ink); background: transparent; }
 
 /* toggles: flat tiles with white gaps, as the deck's table; selected = black */
-.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; }
-.seg button { border: 0; border-radius: var(--r); background: var(--tile); padding: 4px 9px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.seg button:hover { background: var(--tile-hover); color: var(--ink); }
-.seg button[aria-pressed="true"] { background: var(--ink); color: #ffffff; }
+.seg { position: relative; isolation: isolate; display: inline-flex; flex-wrap: wrap; gap: 2px; }
+.seg button { position: relative; border: 0; border-radius: var(--r); background: none; padding: 4px 9px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { color: #ffffff; }
+/* the tile of each option; the selected one is covered by the sliding black pill (placePills) */
+.seg button::before, .viewtabs [role="tab"]::before { content: ""; position: absolute; inset: 0; z-index: -2; border-radius: var(--r); background: var(--tile); }
+.seg button:hover::before, .viewtabs [role="tab"]:hover::before { background: var(--tile-hover); }
+.sel-pill { position: absolute; left: 0; top: 0; z-index: -1; width: 0; height: 0; border-radius: var(--r); background: var(--ink); pointer-events: none; }
 
 .stack-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: step; }
 .stack-list li { display: grid; grid-template-columns: 20px 12px minmax(0, 1fr) auto; align-items: center; gap: 8px;
@@ -121,8 +128,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, li:focus-visibl
 .chips { display: flex; flex-wrap: wrap; gap: 3px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; border: 0; background: var(--tile); border-radius: var(--r); padding: 4px 8px 4px 7px; font-size: 12px; }
 .chip:hover { background: var(--tile-hover); }
-.chip[aria-pressed="true"] { background: var(--accent-tint); }
-.chip .pos { font: 500 11px var(--font-num); color: var(--ink-2); min-width: 1ch; font-variant-numeric: tabular-nums; }
+/* already in the stack: greyed out; a click takes it out again */
+.chip[aria-pressed="true"] { background: transparent; box-shadow: inset 0 0 0 1px var(--rule); color: var(--ink-4); }
+.chip[aria-pressed="true"] .sw { opacity: 0.35; }
+.chip[aria-pressed="true"]:hover { background: transparent; box-shadow: inset 0 0 0 1px var(--rule-strong); color: var(--ink-3); }
 
 /* views */
 .steps { display: grid; min-width: 0; }
@@ -139,9 +148,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, li:focus-visibl
 .fixed-scenario .fs-note { font-size: 12px; color: var(--ink-3); }
 /* control surface: inputs on a light panel, results on white below */
 .controls { background: var(--panel); border-radius: 4px; padding: 18px 20px 16px; display: grid; gap: 14px; }
-.controls .seg button { background: #ffffff; }
-.controls .seg button:hover { background: #e9e9e9; }
-.controls .seg button[aria-pressed="true"] { background: var(--ink); color: #ffffff; }
+.controls .seg button::before { background: #ffffff; }
+.controls .seg button:hover::before { background: #e9e9e9; }
 .controls .dcurve .grid line { stroke: #e4e4e4; }
 
 .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; margin-top: 4px; }
@@ -149,7 +157,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, li:focus-visibl
 .charts.one { grid-template-columns: minmax(0, 1fr); }
 .chart-card { min-width: 0; position: relative; }
 .chart-card h3 { margin: 0; font: 600 16px/1.3 var(--font-head); letter-spacing: -0.005em; }
-.chart-card .cap { margin: 2px 0 8px; font-size: 13px; color: var(--ink-3); max-width: 70ch; }
+.charts-cap { margin: 0 0 -6px; font-size: 13px; color: var(--ink-3); max-width: 110ch; }
+.chart-card h3 { margin-bottom: 8px; }
 .chart-card svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
 .chart-card svg text { fill: var(--ink-3); font: 11px var(--font-num); font-variant-numeric: tabular-nums; }
 .chart-card svg .axis-title { fill: var(--ink-2); font: 12px var(--font-ui); }
@@ -157,6 +166,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, li:focus-visibl
 .chart-card .msg { position: absolute; inset: 70px 12px 40px; display: grid; place-items: center; text-align: center;
   color: var(--ink-3); font-size: 13px; pointer-events: none; }
 .grid line { stroke: var(--grid); stroke-width: 1; }
+.charts.focusing .band:not(.on) { opacity: 0.18; }
+.legend .hint { color: var(--ink-3); }
 .zero { stroke: var(--ink-3); stroke-width: 1; }
 
 .tip { position: absolute; pointer-events: none; z-index: 5; background: #fff; border: 1px solid var(--rule-strong);
@@ -236,7 +247,17 @@ tr.total td { font-weight: 600; border-bottom: 0; border-top: 1px solid var(--in
 tr.base td { color: var(--ink-3); }
 .hint { font-size: 12px; color: var(--ink-3); }
 select { font: inherit; font-size: 12px; padding: 4px 7px; border: 0; border-radius: var(--r); background: var(--tile); color: var(--ink); }
-@media (prefers-reduced-motion: no-preference) { .chip, .btn, .seg button { transition: background-color .12s; } }
+@media (prefers-reduced-motion: no-preference) {
+  .chip, .btn { transition: background-color .12s; }
+  .seg button, .viewtabs [role="tab"] { transition: color .2s; }
+  .seg button::before, .viewtabs [role="tab"]::before { transition: background-color .12s; }
+  .sel-pill.ready { transition: transform .3s cubic-bezier(.3, .7, .2, 1), width .3s cubic-bezier(.3, .7, .2, 1), height .3s; }
+  .charts .band { transition: opacity .15s; }
+  .stack-list li.enter { animation: row-in .22s ease-out; }
+  .hovercard:not([hidden]) { animation: card-in .14s ease-out; }
+}
+@keyframes row-in { from { opacity: 0; transform: translateY(-5px); } }
+@keyframes card-in { from { opacity: 0; transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
 </head>
@@ -299,6 +320,7 @@ select { font: inherit; font-size: 12px; padding: 4px 7px; border: 0; border-rad
               <button type="button" data-v="outline" aria-pressed="false">Outline only</button></span></div>
           </div>
         </div>
+        <p class="charts-cap" id="cap1"></p>
         <div class="charts" id="charts1"></div>
         <div class="legend" id="legend1"></div>
         <div class="meta" id="meta1"></div>
@@ -328,6 +350,7 @@ select { font: inherit; font-size: 12px; padding: 4px 7px; border: 0; border-rad
               <button type="button" data-v="outline" aria-pressed="false">Outline only</button></span></div>
           </div>
         </div>
+        <p class="charts-cap" id="cap2"></p>
         <div class="charts" id="charts"></div>
         <div class="legend" id="legend"></div>
 
@@ -399,7 +422,7 @@ const DESIGN_INFO = {
   hybrid_magnet_switch:                   { confidence: "medium", text: "Part of the NdFeB replaced by ferrite magnets. Less NdFeB per car." },
   consequent_magnet_switch:               { confidence: "medium", text: "Every other rotor pole is plain iron instead of a magnet. Fewer magnets per motor." },
   dual_motor_powertrain_switch:           { confidence: "medium", text: "Two motors per powertrain, of which only one uses permanent magnets. Less magnet per powertrain." },
-  removed_endcaps_switch:                 { confidence: "low",    text: "Rotor without end caps, so the magnets are accessible for recycling. Higher recycling yield." },
+  removed_endcaps_switch:                 { confidence: "low",    text: "Rotor without end caps or endcaps that leave magnets exposed, so the magnets are accessible for recycling. Higher recycling yield." },
   optimized_rotor_geometry_switch:        { confidence: "low",    text: "Rotor shaped so that hydrogen decrepitation (breaking the magnets into recyclable powder) reaches the full magnet mass. Higher recycling yield." },
   no_epoxy_coating_switch:                { confidence: "low",    text: "Magnets without an epoxy coating, which otherwise hampers their recovery. Higher recycling yield." },
   standardization_of_magnets_switch:      { confidence: "low",    text: "Common magnet sizes and grades across motors, so recovered magnets can be reused directly." },
@@ -411,8 +434,8 @@ const DESIGN_INFO = {
 /* ---------- state ---------- */
 let D = null;                               // view 2 data; also defines the design list of the panel
 let COL = [];                               // colour per design
-// shared by both views; hover/pinned belong to view 2's preparation-time cursor
-const S = { stack: [], view: "stacked", metric: "share", fill: "filled", sp: "both", hover: null, pinned: null };
+// shared by both views; hover/pinned belong to view 2's preparation-time cursor; focus = the design pointed at in the panel
+const S = { stack: [], view: "stacked", metric: "share", fill: "filled", sp: "both", hover: null, pinned: null, focus: null };
 // view 1: scenario, data index, loaded files
 const T = { idx: null, synthetic: false, bit: [], cache: new Map(), pending: new Map(), ...STEP1_DEFAULT };
 
@@ -486,28 +509,32 @@ function yAxis(yt, Y, M, iw) {
   };
 }
 // stacked: band k lies between the curves with designs 1..k-1 and 1..k; single: one line per design
+const band = i => `class="band${S.focus === i ? " on" : ""}" data-d="${i}"`;
 function designMarks(s, line, back) {
   if (S.view !== "stacked")
-    return s.curves.map((c, k) => `<path d="${line(c)}" fill="none" stroke="${COL[S.stack[k]]}" stroke-width="2" stroke-linejoin="round"/>`).join("");
+    return s.curves.map((c, k) => `<path ${band(S.stack[k])} d="${line(c)}" fill="none" stroke="${COL[S.stack[k]]}" stroke-width="2" stroke-linejoin="round"/>`).join("");
   let h = "";
   for (let k = 1; k < s.curves.length; k++) {
-    const color = COL[S.stack[k - 1]];
+    const i = S.stack[k - 1], color = COL[i];
     h += S.fill === "filled"
-      ? `<path d="${line(s.curves[k - 1])}${back(s.curves[k])}Z" fill="${color}" fill-opacity="0.88" stroke="var(--band-gap)" stroke-width="0.6"/>`
-      : `<path d="${line(s.curves[k])}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>`;
+      ? `<path ${band(i)} d="${line(s.curves[k - 1])}${back(s.curves[k])}Z" fill="${color}" fill-opacity="0.88" stroke="var(--band-gap)" stroke-width="0.6"/>`
+      : `<path ${band(i)} d="${line(s.curves[k])}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>`;
   }
   if (s.curves.length > 1 && S.fill === "filled") h += `<path d="${line(s.curves[s.curves.length - 1])}" fill="none" stroke="var(--all-line)" stroke-width="1.2"/>`;
   return h;
 }
-function legendHtml(baseEntry) {
-  const asLine = S.view !== "stacked" || S.fill === "outline";
+// the key only: the stack in the panel is the colour legend of the designs
+function legendHtml(baseEntry, extra = "") {
   let h = baseEntry;
-  S.stack.forEach((i, k) => {
-    const mark = asLine ? `<span class="ln" style="border-top:2.5px solid ${COL[i]}"></span>` : `<span class="sw" style="background:${COL[i]}"></span>`;
-    h += `<span>${mark}${S.view === "stacked" && k ? "+ " : ""}${esc(D.designs[i].label)}</span>`;
-  });
   if (S.view === "stacked" && S.stack.length && S.fill === "filled") h += `<span><span class="ln all"></span>whole stack</span>`;
+  h += extra;
+  if (S.stack.length) h += `<span class="hint">designs: colours as in your stack \u00b7 point at one to highlight it</span>`;
   return h;
+}
+function focusDesign(i) {                    // fade every band but this design's (i = null: show all)
+  S.focus = i;
+  document.querySelectorAll(".charts").forEach(c => c.classList.toggle("focusing", i != null));
+  document.querySelectorAll(".charts .band").forEach(p => p.classList.toggle("on", +p.dataset.d === i));
 }
 // tooltip: no-design value, then each design's step (stacked) or value (single)
 function tipHtml(head, s, j, dp, u) {
@@ -537,7 +564,7 @@ function makeCards(containerId, withMsg) {   // one chart card per stockpile
   const box = $(containerId); box.innerHTML = "";
   spKeys().forEach(sp => {
     const card = document.createElement("div"); card.className = "chart-card"; card.dataset.sp = sp;
-    card.innerHTML = `<h3>${sp}-month stockpile</h3><p class="cap"></p><svg role="img"></svg>${withMsg ? `<div class="msg" hidden></div>` : ""}<div class="tip" hidden></div>`;
+    card.innerHTML = `<h3>${sp}-month stockpile</h3><svg role="img"></svg>${withMsg ? `<div class="msg" hidden></div>` : ""}<div class="tip" hidden></div>`;
     box.appendChild(card);
   });
 }
@@ -571,20 +598,26 @@ function renderPanel() {
     idx.forEach(i => {
       const c = document.createElement("button"); c.type = "button"; c.className = "chip"; c.id = `chip-${i}`;
       if (designInfo(i).text) c.dataset.info = `design:${i}`;
-      c.innerHTML = `<span class="sw" style="background:${COL[i]}"></span><span${designInfo(i).text ? ` class="has-info"` : ""}>${esc(D.designs[i].label)}</span><span class="pos"></span>`;
+      c.innerHTML = `<span class="sw" style="background:${COL[i]}"></span><span${designInfo(i).text ? ` class="has-info"` : ""}>${esc(D.designs[i].label)}</span>`;
       c.onclick = () => { S.stack = S.stack.includes(i) ? S.stack.filter(x => x !== i) : [...S.stack, i]; render(); };
+      c.onpointerenter = e => { if (e.pointerType !== "touch" && S.stack.includes(i)) focusDesign(i); };
+      c.onpointerleave = () => focusDesign(null);
       g.querySelector(".chips").appendChild(c);
     });
     lib.appendChild(g);
   }
 }
 function renderStack() {
-  const ol = $("stack"); ol.innerHTML = "";
+  const ol = $("stack"), before = renderStack.shown; ol.innerHTML = "";
+  renderStack.shown = new Set(S.stack);
   $("stack-empty").hidden = S.stack.length > 0;
   S.stack.forEach((i, k) => {
     const name = esc(D.designs[i].label);
     const label = designInfo(i).text ? `<span class="has-info" data-info="design:${i}" tabindex="0">${name}</span>` : name;
     const li = document.createElement("li"); li.draggable = true; li.dataset.k = k;
+    if (before && !before.has(i)) li.classList.add("enter");        // a design that was just added slides in
+    li.addEventListener("pointerenter", e => { if (e.pointerType !== "touch") focusDesign(i); });
+    li.addEventListener("pointerleave", () => focusDesign(null));
     li.innerHTML = `<span class="sw" style="background:${COL[i]}"></span><span class="name">${label}</span>
       <span class="tools"><button type="button" aria-label="Move ${name} up" ${k === 0 ? "disabled" : ""}>↑</button><button type="button" aria-label="Move ${name} down" ${k === S.stack.length - 1 ? "disabled" : ""}>↓</button><button type="button" aria-label="Remove ${name}">✕</button></span>`;
     const [up, down, remove] = li.querySelectorAll(".tools button");
@@ -597,11 +630,8 @@ function renderStack() {
     li.addEventListener("drop", e => { e.preventDefault(); li.classList.remove("drag-over"); const from = +e.dataTransfer.getData("text/plain"); if (Number.isInteger(from)) move(from, k); });
     ol.appendChild(li);
   });
-  D.designs.forEach((d, i) => {                // library chips show their position in the stack
-    const c = $(`chip-${i}`); if (!c) return;
-    const k = S.stack.indexOf(i);
-    c.setAttribute("aria-pressed", k >= 0 ? "true" : "false");
-    c.querySelector(".pos").textContent = k >= 0 ? k + 1 : "";
+  D.designs.forEach((d, i) => {                // library chips are greyed out once in the stack
+    const c = $(`chip-${i}`); if (c) c.setAttribute("aria-pressed", String(S.stack.includes(i)));
   });
 }
 function move(from, to) {
@@ -797,8 +827,8 @@ function renderStep1() {
       base: b.ser[sp].base.map((v, i) => lerp(a.ser[sp].base[i], v, f)),
       curves: b.ser[sp].curves.map((c, j) => c.map((v, i) => lerp(a.ser[sp].curves[j][i], v, f))) }])),
     yd: [lerp(a.yd[0], b.yd[0], f), lerp(a.yd[1], b.yd[1], f)], dur: lerp(a.dur, b.dur, f) }));
-  $("legend1").innerHTML = legendHtml(`<span><span class="ln"></span>no design</span>`) +
-    `<span><span class="ev"></span>disruption</span><span><span class="lost"></span>orders still lost</span>`;
+  $("legend1").innerHTML = legendHtml(`<span><span class="ln"></span>no design</span>`,
+    `<span><span class="ev"></span>disruption</span><span><span class="lost"></span>orders still lost</span>`);
 }
 function showMsg1(sp, text) {
   const c = cardOf("charts1", sp); if (!c) return;
@@ -844,7 +874,7 @@ function drawChart1(card, sp) {
     `<rect class="hit" x="${M.l}" y="${M.t}" width="${iw}" height="${ih}" fill="transparent"/>`;
   svg.setAttribute("aria-label", `${sp}-month stockpile: orders fulfilled per month, ${S.view === "stacked" ? "designs stacked" : "one design at a time"}, ` +
     `disruption of ${pct(T.sev)} for ${T.dur} months after ${T.start} months of preparation`);
-  card.querySelector(".cap").textContent = T.sev === 0
+  $("cap1").textContent = T.sev === 0
     ? "No disruption: no orders are lost, whatever the designs."
     : S.view !== "stacked" ? "Grey: no design. Each line is one design on its own, with no other design switched on."
     : !S.stack.length ? "Grey: no design. Hatched: the orders lost each month. Add designs to see how much each one recovers."
@@ -986,7 +1016,7 @@ function drawChart2(card, sp) {
     `<rect class="hit" x="${M.l}" y="${M.t}" width="${iw}" height="${ih}" fill="transparent"/>`;
   svg.setAttribute("aria-label", `${sp}-month stockpile: ${S.view === "stacked" ? "stacked design contributions" : "one design at a time"} over preparation time`);
   const verb = higherBetter() ? "adds" : "removes";
-  card.querySelector(".cap").textContent = S.view !== "stacked" ? "Grey: no design. Each line is one design on its own, with no other design switched on."
+  $("cap2").textContent = S.view !== "stacked" ? "Grey: no design. Each line is one design on its own, with no other design switched on."
     : !S.stack.length ? "Grey: no design. Add designs to see their bands."
     : S.fill === "filled" ? `Grey: no design. Each band is what that design ${verb} on top of the ones above it in your stack. Black: the whole stack.`
     : `Grey: no design. Each line is the result once that design is added to the ones above it in your stack; the gap to the previous line is what it ${verb}.`;
@@ -1101,7 +1131,22 @@ function syntheticData() {
    ========================================================================================= */
 function render() {                          // after any change to the shared state
   document.querySelectorAll(".fill-wrap").forEach(el => { el.hidden = S.view !== "stacked"; });
-  renderStack(); renderStep1(); drawAll(); renderTable();
+  if (S.focus != null && !S.stack.includes(S.focus)) focusDesign(null);
+  renderStack(); renderStep1(); drawAll(); renderTable(); placePills();
+}
+// the black pill of each toggle slides to the selected option; placed without motion the first time it is seen
+function placePills(animate = true) {
+  document.querySelectorAll(".seg, .viewtabs").forEach(box => {
+    let pill = box.querySelector(":scope > .sel-pill");
+    if (!pill) { pill = document.createElement("span"); pill.className = "sel-pill"; pill.setAttribute("aria-hidden", "true"); box.prepend(pill); }
+    const on = box.querySelector(':scope > [aria-pressed="true"], :scope > [aria-selected="true"]');
+    if (!on || !on.offsetWidth) return;                                   // in a hidden view: placed when shown
+    const jump = !animate || !pill.dataset.placed;
+    if (jump) pill.classList.remove("ready");
+    pill.style.width = on.offsetWidth + "px"; pill.style.height = on.offsetHeight + "px";
+    pill.style.transform = `translate(${on.offsetLeft}px, ${on.offsetTop}px)`;
+    if (jump) { void pill.offsetWidth; pill.classList.add("ready"); pill.dataset.placed = "1"; }
+  });
 }
 function drawVisibleView() {                 // charts are sized from their container: draw what is visible
   if (!$("step1").hidden) { drawDisruption(); renderStep1(); } else { drawAll(); renderTable(); }
@@ -1134,6 +1179,7 @@ function bindTabs() {
     });
     // remember the view in the address (#view2; "#step2" would make the browser jump to that element).
     // Sandboxed previews do not allow this, which is fine.
+    placePills();
     if (remember) try { if (location.hash !== "#view" + n) history.replaceState(null, "", "#view" + n); } catch (err) { /* preview */ }
     drawVisibleView();
   };
@@ -1230,7 +1276,8 @@ markStuckTabs();
 bindInfo();
 bindTabs();
 let resizeTimer = null;
-addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { drawDisruption(); renderStep1(); drawAll(); }, 120); });
+addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { drawDisruption(); renderStep1(); drawAll(); placePills(false); }, 120); });
+if (document.fonts) document.fonts.ready.then(() => placePills(false));       // widths change once the fonts are in
 </script>
 
 </body>
