@@ -77,7 +77,7 @@ header.top > * { max-width: var(--title-w, none); }
   background: var(--accent-soft); color: var(--warn-ink); font-size: 13px; }
 .status strong { font-weight: 600; }
 
-.layout { display: grid; grid-template-columns: minmax(270px, 320px) minmax(0, 1fr); gap: 40px; align-items: start; }
+.layout { display: grid; grid-template-columns: minmax(270px, 336px) minmax(0, 1fr); gap: 40px; align-items: start; }
 @media (max-width: 920px) { .layout { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
 
 /* design panel: no box, a hairline to the right */
@@ -167,15 +167,21 @@ button:focus-visible, input:focus-visible, select:focus-visible, li:focus-visibl
 .tip .row.total { border-top: 1px solid var(--rule); margin-top: 4px; padding-top: 4px; font-weight: 600; }
 
 /* explanations: an "i" after labels; tabs and design chips explain themselves on hover, without a mark */
-.info { display: inline-grid; place-items: center; width: 15px; height: 15px; margin-left: 6px; padding: 0; vertical-align: 1px;
-  border: 1px solid var(--inactive); border-radius: 50%; background: transparent; color: var(--ink-3);
-  font: 600 10px/1 var(--font-ui); text-transform: none; letter-spacing: 0; }
-.info:hover, .info[aria-expanded="true"] { border-color: var(--ink); color: var(--ink); }
+.info { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 15px; height: 15px; margin-left: 6px; padding: 0;
+  vertical-align: middle; border: 0; border-radius: 50%; background: transparent; color: var(--ink-3); }
+.info svg { display: block; width: 15px; height: 15px; }
+.info .ring { stroke: var(--inactive); }
+.info:hover, .info[aria-expanded="true"] { color: var(--ink); }
+.info:hover .ring, .info[aria-expanded="true"] .ring { stroke: var(--ink); }
+.panel h2 { display: flex; align-items: center; }
+.sl-name .info { vertical-align: calc(0.28em - 7.5px); }   /* flows with a label that wraps; centred on its line */
 .hovercard { position: fixed; z-index: 50; max-width: 300px; padding: 9px 11px; border: 1px solid var(--rule-strong); border-radius: var(--r);
   background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.08); font-size: 12.5px; line-height: 1.45; color: var(--ink-2); pointer-events: none; }
-.hovercard .conf-line { display: block; margin-top: 6px; color: var(--ink-3); }
-.stack-list .name.has-conf { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }   /* the tag drops below when it does not fit */
-.conf { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+.hovercard .conf-line { display: flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--ink-3); }
+.conf-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--inactive); }   /* traffic light */
+.conf-dot.high { background: #2f9e44; }
+.conf-dot.medium { background: #f2a516; }
+.conf-dot.low { background: #d9412b; }
 
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-2); }
 .legend span { display: inline-flex; align-items: center; gap: 7px; }
@@ -247,16 +253,16 @@ select { font: inherit; font-size: 12px; padding: 4px 7px; border: 0; border-rad
   <div class="layout">
     <aside class="panel" aria-label="Design selection">
       <section>
-        <h2>Presets<button type="button" class="info" data-info="presets" aria-label="About the presets">i</button></h2>
+        <h2>Presets<button type="button" class="info" data-info="presets" aria-label="About the presets"></button></h2>
         <div class="presets" id="presets"></div>
       </section>
       <section>
-        <h2>Your stack<button type="button" class="info" data-info="stack" aria-label="About the stack">i</button></h2>
+        <h2>Your stack<button type="button" class="info" data-info="stack" aria-label="About the stack"></button></h2>
         <ol class="stack-list" id="stack"></ol>
         <div class="empty" id="stack-empty">No designs yet. Pick designs from the library below; each one is stacked on top of the ones above it.</div>
       </section>
       <section>
-        <h2>Design library<button type="button" class="info" data-info="library" aria-label="About the design library">i</button></h2>
+        <h2>Design library<button type="button" class="info" data-info="library" aria-label="About the design library"></button></h2>
         <div id="library"></div>
       </section>
     </aside>
@@ -382,11 +388,11 @@ const INFO = {
   sev: "Share of the primary NdFeB magnet supply of European BEV manufacturers that is cut. Recycled magnets are not affected.",
   dur: "How long the disruptive event lasts.",
   presets: "Three ready-made stacks with the same three strategies in a different order. Compare them to see whether it matters which strategy comes first. \u201cClear\u201d empties the stack.",
-  stack: "Designs are added from top to bottom, and each band in the chart is what a design adds on top of those above it. Order matters: a design adds less if an earlier one already covers the same gap, and more if they reinforce each other. Add designs from the library, reorder with \u2191 \u2193 or by dragging, and remove with \u2715.",
+  stack: "Designs are added from top to bottom, and each band in the chart is what a design adds on top of those above it. Order matters: a design adds less if an earlier one already covers the same gap, and more if they reinforce each other. Add designs from the library, reorder with \u2191 \u2193 or by dragging, and remove with \u2715. Hover over (or tap) a name to see what the design does.",
   library: "All design choices in the model, in three strategies: <b>reduction</b> (less magnet per motor), <b>recycling</b> (more magnet recovered at end of life), <b>substitution</b> (motors without NdFeB). Click a design to add or remove it; hover over it to see what it does.",
 };
 // per design, by the key in the data: { text: "what it is and does", confidence: "high" | "medium" | "low" }
-// the confidence is shown only for designs in the stack
+// shown when hovering a design, in the library or in the stack
 const DESIGN_INFO = {
   lowering_average_motor_power_switch:    { confidence: "low",    text: "Smaller motors in vehicles that do not need the power. Less magnet per car." },
   halbach_array_switch:                   { confidence: "medium", text: "Magnets arranged to concentrate the field where it is needed. The same torque with less magnet." },
@@ -417,6 +423,10 @@ const fmt = (v, dp) => Number.isFinite(v) ? v.toFixed(dp) : "–";
 const lerp = (a, b, f) => a + (b - a) * f;
 const pct = v => `${Math.round(v * 100)} %`;
 const designInfo = i => DESIGN_INFO[D.designs[i].key] || {};
+// the "i" mark: drawn, not typed, so it sits exactly in the middle of its circle
+const INFO_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle class="ring" cx="8" cy="8" r="7.5" fill="none" stroke-width="1"/>` +
+  `<circle cx="8" cy="4.75" r="0.95" fill="currentColor"/><rect x="7.3" y="6.75" width="1.4" height="5" rx="0.7" fill="currentColor"/></svg>`;
+const infoButton = (key, label) => `<button type="button" class="info" data-info="${key}" aria-label="${label}">${INFO_ICON}</button>`;
 const familyIdx = f => D.designs.map((x, i) => x.family === f ? i : -1).filter(i => i >= 0);
 const prefixMasks = stack => { const out = [0]; let m = 0; for (const i of stack) { m |= 1 << i; out.push(m); } return out; };
 const spKeys = () => D.stockpiles.map(s => String(+s));
@@ -561,7 +571,7 @@ function renderPanel() {
     idx.forEach(i => {
       const c = document.createElement("button"); c.type = "button"; c.className = "chip"; c.id = `chip-${i}`;
       if (designInfo(i).text) c.dataset.info = `design:${i}`;
-      c.innerHTML = `<span class="sw" style="background:${COL[i]}"></span><span>${esc(D.designs[i].label)}</span><span class="pos"></span>`;
+      c.innerHTML = `<span class="sw" style="background:${COL[i]}"></span><span${designInfo(i).text ? ` class="has-info"` : ""}>${esc(D.designs[i].label)}</span><span class="pos"></span>`;
       c.onclick = () => { S.stack = S.stack.includes(i) ? S.stack.filter(x => x !== i) : [...S.stack, i]; render(); };
       g.querySelector(".chips").appendChild(c);
     });
@@ -572,11 +582,12 @@ function renderStack() {
   const ol = $("stack"); ol.innerHTML = "";
   $("stack-empty").hidden = S.stack.length > 0;
   S.stack.forEach((i, k) => {
-    const name = esc(D.designs[i].label), conf = designInfo(i).confidence;
+    const name = esc(D.designs[i].label);
+    const label = designInfo(i).text ? `<span class="has-info" data-info="design:${i}" tabindex="0">${name}</span>` : name;
     const li = document.createElement("li"); li.draggable = true; li.dataset.k = k;
-    li.innerHTML = `<span class="sw" style="background:${COL[i]}"></span>${conf ? `<span class="name has-conf"><span>${name}</span><span class="conf">${esc(conf)} confidence</span></span>` : `<span class="name">${name}</span>`}
+    li.innerHTML = `<span class="sw" style="background:${COL[i]}"></span><span class="name">${label}</span>
       <span class="tools"><button type="button" aria-label="Move ${name} up" ${k === 0 ? "disabled" : ""}>↑</button><button type="button" aria-label="Move ${name} down" ${k === S.stack.length - 1 ? "disabled" : ""}>↓</button><button type="button" aria-label="Remove ${name}">✕</button></span>`;
-    const [up, down, remove] = li.querySelectorAll("button");
+    const [up, down, remove] = li.querySelectorAll(".tools button");
     up.onclick = () => move(k, k - 1); down.onclick = () => move(k, k + 1);
     remove.onclick = () => { S.stack.splice(k, 1); render(); };
     li.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", String(k)); e.dataTransfer.effectAllowed = "move"; li.classList.add("dragging"); });
@@ -627,7 +638,7 @@ async function loadSeriesIndex() {
 /* ---------- sliders: snap to the simulated values; the curve follows while dragging, results load on release ---------- */
 function buildSlider(id, key, title, values, fmtV) {
   const el = $(id), n = values.length, at = i => n > 1 ? i / (n - 1) * 100 : 0;
-  el.innerHTML = `<div class="sl-head"><span><label for="${id}-in">${title}</label><button type="button" class="info" data-info="${key}" aria-label="About ${title}">i</button></span><output for="${id}-in"></output></div>
+  el.innerHTML = `<div class="sl-head"><span class="sl-name"><label for="${id}-in">${title}</label>${infoButton(key, `About ${title}`)}</span><output for="${id}-in"></output></div>
     <input type="range" id="${id}-in" min="0" max="${n - 1}" step="1" value="${Math.max(0, values.indexOf(T[key]))}">
     <div class="sl-ticks">${values.map((v, i) => `<span data-i="${i}" style="left:${at(i)}%;transform:translateX(${i === 0 ? 0 : i === n - 1 ? -100 : -50}%)">${fmtV(v)[0]}</span>`).join("")}</div>`;
   const inp = el.querySelector("input"), out = el.querySelector("output"), ticks = el.querySelectorAll(".sl-ticks span");
@@ -1139,12 +1150,13 @@ function bindTabs() {
 // one shared card for every element with data-info: hover (after a short pause), keyboard focus, or tap on an "i"
 function bindInfo() {
   const card = $("hovercard"), DELAY = 300;
+  document.querySelectorAll(".info:empty").forEach(b => { b.innerHTML = INFO_ICON; });
   let anchor = null, timer = null;
   const textOf = el => {
     const k = el.dataset.info;
     if (k.startsWith("design:")) {
       const i = +k.slice(7), d = designInfo(i);
-      return esc(d.text || "") + (d.confidence ? `<span class="conf-line">${esc(d.confidence)} confidence</span>` : "");
+      return esc(d.text || "") + (d.confidence ? `<span class="conf-line"><span class="conf-dot ${esc(d.confidence)}"></span>${esc(d.confidence)} confidence</span>` : "");
     }
     const t = INFO[k]; return typeof t === "function" ? t() : t || "";
   };
@@ -1169,23 +1181,24 @@ function bindInfo() {
   }
   const target = e => e.target.closest && e.target.closest("[data-info]");
   document.addEventListener("pointerover", e => {
-    const el = target(e); if (!el || el === anchor || e.pointerType !== "mouse") return;
+    const el = target(e); if (!el || el === anchor || e.pointerType === "touch") return;
     clearTimeout(timer); timer = setTimeout(() => show(el), DELAY);
   });
   document.addEventListener("pointerout", e => {
-    const el = target(e); if (!el || e.pointerType !== "mouse" || el.contains(e.relatedTarget)) return;   // a touch also "leaves" on release
+    const el = target(e); if (!el || e.pointerType === "touch" || el.contains(e.relatedTarget)) return;   // a touch also "leaves" on release
     clearTimeout(timer); if (el === anchor) hide();
   });
   document.addEventListener("focusin", e => { const el = target(e); if (el && el.matches(":focus-visible")) show(el); });
   document.addEventListener("focusout", e => { if (target(e) === anchor) hide(); });
   document.addEventListener("click", e => {
     const el = target(e);
-    if (el && el.classList.contains("info")) {            // the "i" also opens on click or tap (touch screens have no hover)
-      e.preventDefault(); if (el === anchor && e.pointerType !== "mouse") hide(); else show(el);
+    if (el && el.matches(".info, .has-info")) {           // an "i" or an underlined name also opens on click or tap (no hover on touch screens)
+      e.preventDefault(); if (el === anchor && e.pointerType === "touch") hide(); else show(el);
     }
     else hide();                                          // a tab or chip was used
   });
   document.addEventListener("keydown", e => { if (e.key === "Escape") hide(); });
+  document.addEventListener("dragstart", hide);
   addEventListener("scroll", hide, { passive: true });
   addEventListener("resize", hide);
 }
